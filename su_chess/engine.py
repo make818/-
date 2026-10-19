@@ -195,7 +195,11 @@ def apply(s,m):
  pending={sq:max(0,n-1) for sq,n in s.shield_pending.items() if n>1}
  s2=State(b,s.turn^1,'play',winner,pending,list(s.history))
  for sq,q in s2.board.items():
-  if q.kind==K.SHIELD and _shield_attacked(s2,sq,q.side): s2.shield_pending[sq]=1
+  # A threat is recorded once.  If the threatened side gets a turn and the
+  # second attack is not completed, the one-turn marker expires instead of
+  # being refreshed forever by the same line of attack.
+  if q.kind==K.SHIELD and sq not in s.shield_pending and _shield_attacked(s2,sq,q.side):
+   s2.shield_pending[sq]=1
  s2.history.append(position_key(s2))
  if sum(k==s2.history[-1] for k in s2.history)>=4 and winner is None: s2.phase='draw'
  if winner is None and terminal_reason(s2)=='no-captures-draw': s2.phase='draw'
